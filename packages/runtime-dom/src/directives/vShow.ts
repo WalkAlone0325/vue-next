@@ -5,6 +5,7 @@ interface VShowElement extends HTMLElement {
   _vod: string
 }
 
+// v-show 指令
 export const vShow: ObjectDirective<VShowElement> = {
   beforeMount(el, { value }, { transition }) {
     el._vod = el.style.display === 'none' ? '' : el.style.display
@@ -48,5 +49,7 @@ if (__NODE_JS__) {
 }
 
 function setDisplay(el: VShowElement, value: unknown): void {
+  // v-show 内部实现
+  // 使用 display: none
   el.style.display = value ? el._vod : 'none'
 }

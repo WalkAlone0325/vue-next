@@ -47,6 +47,7 @@ export type OptionMergeFunction = (
   key: string
 ) => any
 
+// 实例配置
 export interface AppConfig {
   // @private
   readonly isNativeTag?: (tag: string) => boolean
@@ -94,6 +95,7 @@ export type Plugin =
       install: PluginInstallFunction
     }
 
+// 创建实例上下文
 export function createAppContext(): AppContext {
   return {
     app: null as any,
@@ -124,6 +126,7 @@ export function createAppAPI<HostElement>(
   render: RootRenderFunction,
   hydrate?: RootHydrateFunction
 ): CreateAppFunction<HostElement> {
+  // createApp
   return function createApp(rootComponent, rootProps = null) {
     if (rootProps != null && !isObject(rootProps)) {
       __DEV__ && warn(`root props passed to app.mount() must be an object.`)
@@ -226,6 +229,7 @@ export function createAppAPI<HostElement>(
 
       mount(rootContainer: HostElement, isHydrate?: boolean): any {
         if (!isMounted) {
+          // 创建根组件的 VNode
           const vnode = createVNode(
             rootComponent as ConcreteComponent,
             rootProps
@@ -244,6 +248,7 @@ export function createAppAPI<HostElement>(
           if (isHydrate && hydrate) {
             hydrate(vnode as VNode<Node, Element>, rootContainer as any)
           } else {
+            // 利用渲染器渲染 VNode
             render(vnode, rootContainer)
           }
           isMounted = true
@@ -252,6 +257,7 @@ export function createAppAPI<HostElement>(
           ;(rootContainer as any).__vue_app__ = app
 
           if (__DEV__ || __FEATURE_PROD_DEVTOOLS__) {
+            // 初始化 devtools
             devtoolsInitApp(app, version)
           }
 

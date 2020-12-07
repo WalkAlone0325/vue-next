@@ -1508,6 +1508,7 @@ function baseCreateRenderer(
     flushPreFlushCbs(undefined, instance.update)
   }
 
+  //
   const patchChildren: PatchChildrenFn = (
     n1,
     n2,

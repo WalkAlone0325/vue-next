@@ -116,6 +116,7 @@ export type VNodeNormalizedChildren =
   | RawSlots
   | null
 
+// VNode 类型
 export interface VNode<
   HostNode = RendererNode,
   HostElement = RendererElement,

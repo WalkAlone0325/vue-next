@@ -49,15 +49,21 @@ export { defineProps, defineEmit, useContext } from './apiSetupHelpers'
 
 // For getting a hold of the internal instance in setup() - useful for advanced
 // plugins
+//用于保留setup（）中的内部实例-对高级有用
+//插件
 export { getCurrentInstance } from './component'
 
 // For raw render function users
+//对于原始渲染功能用户
 export { h } from './h'
 // Advanced render function utilities
+//高级渲染功能实用程序
 export { createVNode, cloneVNode, mergeProps, isVNode } from './vnode'
 // VNode types
+//VNode类型
 export { Fragment, Text, Comment, Static } from './vnode'
 // Built-in components
+//内置组件
 export { Teleport, TeleportProps } from './components/Teleport'
 export { Suspense, SuspenseProps } from './components/Suspense'
 export { KeepAlive, KeepAliveProps } from './components/KeepAlive'
@@ -66,11 +72,13 @@ export {
   BaseTransitionProps
 } from './components/BaseTransition'
 // For using custom directives
+//用于使用自定义指令
 export { withDirectives } from './directives'
 // SSR context
 export { useSSRContext, ssrContextKey } from './helpers/useSsrContext'
 
 // Custom Renderer API ---------------------------------------------------------
+//自定义渲染器API
 
 export { createRenderer, createHydrationRenderer } from './renderer'
 export { queuePostFlushCb } from './scheduler'

@@ -24,6 +24,11 @@ import { DefineComponent } from './apiDefineComponent'
 // Compiler-generated code uses `createVNode` because
 // 1. it is monomorphic and avoids the extra call overhead
 // 2. it allows specifying patchFlags for optimization
+//`h`是`createVNode`的一个更加用户友好的版本，它可以省略
+//尽可能的道具。它用于手动编写的渲染功能。
+//编译器生成的代码使用`createVNode`，因为
+//1.它是单态的，避免了额外的调用开销
+//2.它允许指定patchFlags进行优化
 
 /*
 // type only
@@ -77,6 +82,12 @@ interface Constructor<P = any> {
 // manually written render functions.
 
 // element
+/**
+ * 标签
+ * @param type 标签类型
+ * @param props 属性
+ * @param children 是否有子项
+ */
 export function h(type: string, children?: RawChildren): VNode
 export function h(
   type: string,
