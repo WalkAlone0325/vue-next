@@ -569,21 +569,28 @@ function setupStatefulComponent(
     }
   }
   // 0. create render proxy property access cache
+  //0. 创建渲染代理属性访问缓存
   instance.accessCache = Object.create(null)
   // 1. create public instance / render proxy
   // also mark it raw so it's never observed
+  // 1.创建公共实例/渲染代理
+  // 也将其标记为原始，以便从未观察到
+  // 创建渲染上下文代理 PublicInstanceProxyHandlers 处理函数
   instance.proxy = new Proxy(instance.ctx, PublicInstanceProxyHandlers)
   if (__DEV__) {
     exposePropsOnRenderContext(instance)
   }
   // 2. call setup()
+  // 2. 判断处理 setup 函数
   const { setup } = Component
   if (setup) {
+    // 如果setup函数带参数，则创建一个setupContext
     const setupContext = (instance.setupContext =
       setup.length > 1 ? createSetupContext(instance) : null)
 
     currentInstance = instance
     pauseTracking()
+    // 执行 setup 函数，获取结果
     const setupResult = callWithErrorHandling(
       setup,
       instance,
@@ -610,13 +617,16 @@ function setupStatefulComponent(
         )
       }
     } else {
+      // 处理 setup 执行结果
       handleSetupResult(instance, setupResult, isSSR)
     }
   } else {
+    // 完成组件实例设置
     finishComponentSetup(instance, isSSR)
   }
 }
 
+// 处理 setup 执行结果
 export function handleSetupResult(
   instance: ComponentInternalInstance,
   setupResult: unknown,
@@ -629,6 +639,7 @@ export function handleSetupResult(
       // set it as ssrRender instead.
       instance.ssrRender = setupResult
     } else {
+      // setup 返回渲染函数
       instance.render = setupResult as InternalRenderFunction
     }
   } else if (isObject(setupResult)) {
@@ -643,6 +654,7 @@ export function handleSetupResult(
     if (__DEV__ || __FEATURE_PROD_DEVTOOLS__) {
       instance.devtoolsRawSetupState = setupResult
     }
+    // 把 setup 返回结果变成响应式
     instance.setupState = proxyRefs(setupResult)
     if (__DEV__) {
       exposeSetupStateOnRenderContext(instance)
@@ -672,6 +684,7 @@ export function registerRuntimeCompiler(_compile: any) {
   compile = _compile
 }
 
+// 完成组件实例设置
 function finishComponentSetup(
   instance: ComponentInternalInstance,
   isSSR: boolean
@@ -679,6 +692,7 @@ function finishComponentSetup(
   const Component = instance.type as ComponentOptions
 
   // template / render function normalization
+  //模板/渲染函数规范化
   if (__NODE_JS__ && isSSR) {
     if (Component.render) {
       instance.render = Component.render as InternalRenderFunction
@@ -689,6 +703,7 @@ function finishComponentSetup(
       if (__DEV__) {
         startMeasure(instance, `compile`)
       }
+      // 运行时编译
       Component.render = compile(Component.template, {
         isCustomElement: instance.appContext.config.isCustomElement,
         delimiters: Component.delimiters
@@ -758,6 +773,7 @@ const attrHandlers: ProxyHandler<Data> = {
   }
 }
 
+// 创建 setupContext
 export function createSetupContext(
   instance: ComponentInternalInstance
 ): SetupContext {

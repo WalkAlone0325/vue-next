@@ -58,6 +58,7 @@ export const ErrorTypeStrings: Record<number | string, string> = {
 
 export type ErrorTypes = LifecycleHooks | ErrorCodes
 
+// 执行 setup 函数，获取结果
 export function callWithErrorHandling(
   fn: Function,
   instance: ComponentInternalInstance | null,
