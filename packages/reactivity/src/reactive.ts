@@ -81,12 +81,38 @@ type UnwrapNestedRefs<T> = T extends Ref ? T : UnwrapRef<T>
  * count.value // -> 1
  * ```
  */
+/**
+ *创建原始对象的反应性副本。
+ *
+ *反应式转换为“深度”转换-它会影响所有嵌套属性。在里面
+ *基于ES2015代理的实现，返回的代理**不**等于
+ *原始对象。建议仅与反应堆一起使用
+ *代理并避免依赖原始对象。
+ *
+ *反应性对象还会自动解包其中包含的引用，因此您
+ *访问和更改其值时无需使用`.value`：
+ *
+ *```js
+ *常量计数= ref（0）
+ *const obj =反应性（{
+ *数
+ *}）
+ *
+ *obj.count ++
+ *obj.count //-> 1
+ *count.value //-> 1
+ *```
+ */
+// reactive 方法的定义
 export function reactive<T extends object>(target: T): UnwrapNestedRefs<T>
 export function reactive(target: object) {
   // if trying to observe a readonly proxy, return the readonly version.
+  // 如果目标对象是一个只读的响应数据,则直接返回目标对象
   if (target && (target as Target)[ReactiveFlags.IS_READONLY]) {
     return target
   }
+
+  // 否则调用  createReactiveObject 创建 observe
   return createReactiveObject(
     target,
     false,
@@ -163,20 +189,28 @@ export function shallowReadonly<T extends object>(
   )
 }
 
+/* createReactiveObject 方法的定义 创建响应式对象方法 */
+// Target 目标对象
+// isReadonly 是否只读
+// baseHandlers 基本类型的 handlers
+// collectionHandlers 主要针对(set、map、weakSet、weakMap)的 handlers
 function createReactiveObject(
-  target: Target,
-  isReadonly: boolean,
-  baseHandlers: ProxyHandler<any>,
-  collectionHandlers: ProxyHandler<any>
+  target: Target, // 目标对象
+  isReadonly: boolean, // 是否只读
+  baseHandlers: ProxyHandler<any>, // 基本类型的 handlers
+  collectionHandlers: ProxyHandler<any> // 主要针对(set、map、weakSet、weakMap)的 handlers
 ) {
+  // 如果不是对象
   if (!isObject(target)) {
     if (__DEV__) {
+      // 在开发模式抛出警告，生产环境直接返回目标对象
       console.warn(`value cannot be made reactive: ${String(target)}`)
     }
     return target
   }
   // target is already a Proxy, return it.
   // exception: calling readonly() on a reactive object
+  // 如果目标对象已经是个 proxy 直接返回
   if (
     target[ReactiveFlags.RAW] &&
     !(isReadonly && target[ReactiveFlags.IS_REACTIVE])
@@ -184,6 +218,7 @@ function createReactiveObject(
     return target
   }
   // target already has corresponding Proxy
+  //目标已经有相应的代理
   const proxyMap = isReadonly ? readonlyMap : reactiveMap
   const existingProxy = proxyMap.get(target)
   if (existingProxy) {

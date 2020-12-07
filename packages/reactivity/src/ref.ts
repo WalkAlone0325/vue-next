@@ -27,6 +27,7 @@ export type ToRefs<T = any> = {
   [K in keyof T]: T[K] extends Ref ? T[K] : Ref<UnwrapRef<T[K]>>
 }
 
+// 如是是对象则调用 reactive, 否则直接返回
 const convert = <T extends unknown>(val: T): T =>
   isObject(val) ? reactive(val) : val
 
@@ -38,7 +39,9 @@ export function isRef(r: any): r is Ref {
 export function ref<T extends object>(value: T): ToRef<T>
 export function ref<T>(value: T): Ref<UnwrapRef<T>>
 export function ref<T = any>(): Ref<T | undefined>
+// ref 函数定义， 传入一个可选的 unknown 作为入参
 export function ref(value?: unknown) {
+  // 直接调用 createRef 方法
   return createRef(value)
 }
 
@@ -51,6 +54,7 @@ export function shallowRef(value?: unknown) {
   return createRef(value, true)
 }
 
+// RefImpl 构造函数定义
 class RefImpl<T> {
   private _value: T
 
@@ -61,6 +65,7 @@ class RefImpl<T> {
   }
 
   get value() {
+    // track
     track(toRaw(this), TrackOpTypes.GET, 'value')
     return this._value
   }
@@ -69,15 +74,23 @@ class RefImpl<T> {
     if (hasChanged(toRaw(newVal), this._rawValue)) {
       this._rawValue = newVal
       this._value = this._shallow ? newVal : convert(newVal)
+      // trigger
       trigger(toRaw(this), TriggerOpTypes.SET, 'value', newVal)
     }
   }
 }
 
+/**
+ * @description createRef 方法定义
+ * @param rawValue 原始值
+ * @param shallow 是否是浅观察
+ */
 function createRef(rawValue: unknown, shallow = false) {
+  // 如果已经是 ref 直接返回
   if (isRef(rawValue)) {
     return rawValue
   }
+  // 传入 RefImpl
   return new RefImpl(rawValue, shallow)
 }
 

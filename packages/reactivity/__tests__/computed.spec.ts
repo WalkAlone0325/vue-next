@@ -9,6 +9,7 @@ import {
 } from '../src'
 
 describe('reactivity/computed', () => {
+  // 每次返回的是最新的值
   it('should return updated value', () => {
     const value = reactive<{ foo?: number }>({})
     const cValue = computed(() => value.foo)
@@ -17,6 +18,7 @@ describe('reactivity/computed', () => {
     expect(cValue.value).toBe(1)
   })
 
+  // 计算属性默认是 lazy 不会立即执行, 取的值未发生变化不会执行
   it('should compute lazily', () => {
     const value = reactive<{ foo?: number }>({})
     const getter = jest.fn(() => value.foo)
@@ -45,6 +47,7 @@ describe('reactivity/computed', () => {
     expect(getter).toHaveBeenCalledTimes(2)
   })
 
+  // 如果有effect是依赖 computed 结果的，当它改变时，effect 也会执行
   it('should trigger effect', () => {
     const value = reactive<{ foo?: number }>({})
     const cValue = computed(() => value.foo)
@@ -57,6 +60,7 @@ describe('reactivity/computed', () => {
     expect(dummy).toBe(1)
   })
 
+  // computed 之间可以相互依赖
   it('should work when chained', () => {
     const value = reactive({ foo: 0 })
     const c1 = computed(() => value.foo)
@@ -115,6 +119,7 @@ describe('reactivity/computed', () => {
     expect(getter2).toHaveBeenCalledTimes(2)
   })
 
+  // computed 可以 stop, stop 后不再响应
   it('should no longer update when stopped', () => {
     const value = reactive<{ foo?: number }>({})
     const cValue = computed(() => value.foo)
@@ -130,6 +135,7 @@ describe('reactivity/computed', () => {
     expect(dummy).toBe(1)
   })
 
+  // 支持自定义 setter , setter 会触发 effect
   it('should support setter', () => {
     const n = ref(1)
     const plusOne = computed({
@@ -166,6 +172,7 @@ describe('reactivity/computed', () => {
     expect(dummy).toBe(-1)
   })
 
+  // 默认是只读对象，修改会抛出错误
   it('should warn if trying to set a readonly computed', () => {
     const n = ref(1)
     const plusOne = computed(() => n.value + 1)

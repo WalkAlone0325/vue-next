@@ -11,12 +11,14 @@ import {
 import { ITERATE_KEY } from '../src/effect'
 
 describe('reactivity/effect', () => {
+  // 传递给 effect 的方法，会立即执行一次
   it('should run the passed function once (wrapped by a effect)', () => {
     const fnSpy = jest.fn(() => {})
     effect(fnSpy)
     expect(fnSpy).toHaveBeenCalledTimes(1)
   })
 
+  // 在 effect 执行将 observe 对基本类型赋值，observe 进行改变时，将反应到基本类型上
   it('should observe basic properties', () => {
     let dummy
     const counter = reactive({ num: 0 })
@@ -27,6 +29,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(7)
   })
 
+  // 多个属性 看出来effect 中是有 cache 存在的
   it('should observe multiple properties', () => {
     let dummy
     const counter = reactive({ num1: 0, num2: 0 })
@@ -37,9 +40,11 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(21)
   })
 
+  // 在多个 effect 中处理 observe，当 observe 发生改变时，将同步到多个 effect
   it('should handle multiple effects', () => {
     let dummy1, dummy2
     const counter = reactive({ num: 0 })
+    // 多个 effect 同步
     effect(() => (dummy1 = counter.num))
     effect(() => (dummy2 = counter.num))
 
@@ -50,8 +55,10 @@ describe('reactivity/effect', () => {
     expect(dummy2).toBe(1)
   })
 
+  // 嵌套的 observe 做出改变时，也会产生响应
   it('should observe nested properties', () => {
     let dummy
+    // 嵌套
     const counter = reactive({ nested: { num: 0 } })
     effect(() => (dummy = counter.nested.num))
 
@@ -60,6 +67,8 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(8)
   })
 
+  // 在 effect 执行将 observe 对基本类型赋值，
+  // observe 进行删除操作时，将反应到基本类型上
   it('should observe delete operations', () => {
     let dummy
     const obj = reactive({ prop: 'value' })
@@ -67,10 +76,12 @@ describe('reactivity/effect', () => {
 
     expect(dummy).toBe('value')
     // @ts-ignore
+    // 删除操作
     delete obj.prop
     expect(dummy).toBe(undefined)
   })
 
+  // 在 effect 执行将 observe in 操作，observe 进行删除操作时，将反应到基本类型上
   it('should observe has operations', () => {
     let dummy
     const obj = reactive<{ prop: string | number }>({ prop: 'value' })
@@ -84,6 +95,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(true)
   })
 
+  // 对 prototype 的操作也能响应
   it('should observe properties on the prototype chain', () => {
     let dummy
     const counter = reactive({ num: 0 })
@@ -101,6 +113,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(3)
   })
 
+  // 对 prototype 的操作也能响应
   it('should observe has operations on the prototype chain', () => {
     let dummy
     const counter = reactive({ num: 0 })
@@ -145,9 +158,11 @@ describe('reactivity/effect', () => {
     expect(parentDummy).toBe(2)
   })
 
+  // 对 function 的操作也能响应
   it('should observe function call chains', () => {
     let dummy
     const counter = reactive({ num: 0 })
+    // 函数响应
     effect(() => (dummy = getNum()))
 
     function getNum() {
@@ -159,6 +174,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(2)
   })
 
+  // 对 iteration 迭代响应
   it('should observe iteration', () => {
     let dummy
     const list = reactive(['Hello'])
@@ -171,6 +187,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe('World!')
   })
 
+  // 数组隐式的变化可以响应
   it('should observe implicit array length changes', () => {
     let dummy
     const list = reactive(['Hello'])
@@ -183,6 +200,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe('Hello World!  Hello!')
   })
 
+  // 数组隐式的变化可以响应
   it('should observe sparse array mutations', () => {
     let dummy
     const list = reactive<string[]>([])
@@ -196,6 +214,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe('Hello')
   })
 
+  // 计算操作可以被响应
   it('should observe enumeration', () => {
     let dummy = 0
     const numbers = reactive<Record<string, number>>({ num1: 3 })
@@ -213,6 +232,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(4)
   })
 
+  // Symbol 类型可以响应
   it('should observe symbol keyed properties', () => {
     const key = Symbol('symbol keyed prop')
     let dummy, hasDummy
@@ -230,6 +250,7 @@ describe('reactivity/effect', () => {
     expect(hasDummy).toBe(false)
   })
 
+  // well-known symbol 不能被观察
   it('should not observe well-known symbol keyed properties', () => {
     const key = Symbol.isConcatSpreadable
     let dummy
@@ -243,6 +264,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(undefined)
   })
 
+  // function 的变更可以响应
   it('should observe function valued properties', () => {
     const oldFunc = () => {}
     const newFunc = () => {}
@@ -256,6 +278,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(newFunc)
   })
 
+  // this 会被响应
   it('should observe chained getters relying on this', () => {
     const obj = reactive({
       a: 1,
@@ -304,6 +327,7 @@ describe('reactivity/effect', () => {
     expect(hasDummy).toBe(true)
   })
 
+  // 改变原始对象不产生响应
   it('should not observe raw mutations', () => {
     let dummy
     const obj = reactive<{ prop?: string }>({})
@@ -346,6 +370,7 @@ describe('reactivity/effect', () => {
     expect(parentDummy).toBe(undefined)
   })
 
+  // 可以避免隐性递归导致的无限循环
   it('should avoid implicit infinite recursive loops with itself', () => {
     const counter = reactive({ num: 0 })
 
@@ -381,6 +406,7 @@ describe('reactivity/effect', () => {
     })
   })
 
+  // 可以显式递归调用
   it('should allow explicitly recursive raw function loops', () => {
     const counter = reactive({ num: 0 })
     const numSpy = jest.fn(() => {
@@ -417,6 +443,7 @@ describe('reactivity/effect', () => {
     expect(spy2).toHaveBeenCalledTimes(3)
   })
 
+  // 每次返回的都是新函数
   it('should return a new reactive version of the function', () => {
     function greet() {
       return 'Hello World'
@@ -429,6 +456,7 @@ describe('reactivity/effect', () => {
     expect(effect1).not.toBe(effect2)
   })
 
+  // 当结果未发生变动时不做处理，发生改变时应该产生响应
   it('should discover new branches while running automatically', () => {
     let dummy
     const obj = reactive({ prop: 'value', run: false })
@@ -488,6 +516,7 @@ describe('reactivity/effect', () => {
     expect(conditionalSpy).toHaveBeenCalledTimes(2)
   })
 
+  // 每次返回的是一个新函数，原始对象是同一个
   it('should not double wrap if the passed function is a effect', () => {
     const runner = effect(() => {})
     const otherRunner = effect(runner)
@@ -495,6 +524,7 @@ describe('reactivity/effect', () => {
     expect(runner.raw).toBe(otherRunner.raw)
   })
 
+  // 单一的改变只会执行一次
   it('should not run multiple times for a single mutation', () => {
     let dummy
     const obj = reactive<Record<string, number>>({})
@@ -512,6 +542,7 @@ describe('reactivity/effect', () => {
     expect(fnSpy).toHaveBeenCalledTimes(2)
   })
 
+  // effect 可以嵌套
   it('should allow nested effects', () => {
     const nums = reactive({ num1: 0, num2: 1, num3: 2 })
     const dummy: any = {}
@@ -545,6 +576,7 @@ describe('reactivity/effect', () => {
     expect(childSpy).toHaveBeenCalledTimes(5)
   })
 
+  // JSON 方法可以响应
   it('should observe json methods', () => {
     let dummy = <Record<string, number>>{}
     const obj = reactive<Record<string, number>>({})
@@ -555,6 +587,7 @@ describe('reactivity/effect', () => {
     expect(dummy.a).toBe(1)
   })
 
+  // Class 方法调用可以观察
   it('should observe class method invocations', () => {
     class Model {
       count: number
@@ -575,6 +608,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(1)
   })
 
+  // 传入参数 lazy, 不会立即执行, 支持 lazy 调用
   it('lazy', () => {
     const obj = reactive({ foo: 1 })
     let dummy
@@ -587,6 +621,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(2)
   })
 
+  // 传入参数 scheduler, 支持自定义调度
   it('scheduler', () => {
     let runner: any, dummy
     const scheduler = jest.fn(_runner => {
@@ -612,6 +647,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(2)
   })
 
+  // observer 的每次响应都会被 track
   it('events: onTrack', () => {
     let events: DebuggerEvent[] = []
     let dummy
@@ -651,6 +687,7 @@ describe('reactivity/effect', () => {
     ])
   })
 
+  // observer 的每次响应会触发 trigger
   it('events: onTrigger', () => {
     let events: DebuggerEvent[] = []
     let dummy
@@ -690,6 +727,7 @@ describe('reactivity/effect', () => {
     })
   })
 
+  // observer 支持 stop，stop 后支持手动调用
   it('stop', () => {
     let dummy
     const obj = reactive({ prop: 1 })
@@ -707,6 +745,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(3)
   })
 
+  // effect 被 stop 后，scheduler 不会再响应
   it('stop with scheduler', () => {
     let dummy
     const obj = reactive({ prop: 1 })
@@ -729,6 +768,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(1)
   })
 
+  // 支持 stop 回调
   it('events: onStop', () => {
     const onStop = jest.fn()
     const runner = effect(() => {}, {
@@ -761,6 +801,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(3)
   })
 
+  // 标记为原始数据的不能响应
   it('markRaw', () => {
     const obj = reactive({
       foo: markRaw({
@@ -778,6 +819,7 @@ describe('reactivity/effect', () => {
     expect(dummy).toBe(1)
   })
 
+  // 当新值和旧值都是 NaN 时，不会 trigger
   it('should not be trigger when the value and the old value both are NaN', () => {
     const obj = reactive({
       foo: NaN
@@ -788,6 +830,7 @@ describe('reactivity/effect', () => {
     expect(fnSpy).toHaveBeenCalledTimes(1)
   })
 
+  // 当数组长度设置为0时，会触发所有 effect
   it('should trigger all effects when array length is set to 0', () => {
     const observed: any = reactive([1])
     let dummy, record
