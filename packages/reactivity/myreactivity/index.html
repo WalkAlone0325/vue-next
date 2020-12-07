@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="../dist/reactivity.global.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    const {reactive,effect} = VueReactivity
+    const state = reactive({name:'loner',age:18,address:'sx'})
+    effect(()=>{
+      console.log(1)
+      app.innerHTML = `${state.name}今年${state.age}岁了`
+    })
+    setTimeout(() => {
+      state.name='jsw'
+    }, 1000);
+
+  </script>
+</body>
+</html>
