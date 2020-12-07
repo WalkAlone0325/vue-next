@@ -1217,6 +1217,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 挂载组件
   const mountComponent: MountComponentFn = (
     initialVNode,
     container,
@@ -1226,6 +1227,7 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
+    // 创建组件实例 createComponentInstance 函数
     const instance: ComponentInternalInstance = (initialVNode.component = createComponentInstance(
       initialVNode,
       parentComponent,
@@ -1242,14 +1244,17 @@ function baseCreateRenderer(
     }
 
     // inject renderer internals for keepAlive
+    //为keepAlive注入渲染器内部
     if (isKeepAlive(initialVNode)) {
       ;(instance.ctx as KeepAliveContext).renderer = internals
     }
 
     // resolve props and slots for setup context
+    //解析设置上下文的道具和位置
     if (__DEV__) {
       startMeasure(instance, `init`)
     }
+    // 设置组件实例
     setupComponent(instance)
     if (__DEV__) {
       endMeasure(instance, `init`)
@@ -1269,6 +1274,7 @@ function baseCreateRenderer(
       return
     }
 
+    // 设置并运行带副作用的渲染函数
     setupRenderEffect(
       instance,
       initialVNode,
