@@ -46,6 +46,62 @@
 
 > 定义: 接收一个普通对象然后返回该普通对象的响应式代理。等同于 2.x 的 Vue.observable()
 
+1. `reactive` 函数定义
+   ```ts
+   export function reactive(target: object) {
+     // 如果目标对象是一个只读的响应数据,则直接返回目标对象
+     if (target && (target as Target)[ReactiveFlags.IS_READONLY]) {
+       return target
+     }
+     // 否则调用  createReactiveObject 创建 observe
+     return createReactiveObject(
+       target,
+       false,
+       mutableHandlers,
+       mutableCollectionHandlers
+     )
+   }
+   ```
+2. `createReactiveObject` 创建 `reactive` 对象：
+
+   1. 判断 `target` 是不是数组或者对象类型，如果不是则直接返回（原始数据 `target` 必须是 **对象** 或者 **数组**）
+   2. 如果对一个已经是响应式的对象再执行 `reactive` ，应该返回这个响应式对象
+   3. `reactive` 函数通过 `target.__v_raw` 属性来判断 `target` 是否已经**是**一个响应式对象，如果是直接返回响应式对象
+   4. `reactive` 函数通过 `target.__v_reactive` 属性来判断 `target` 是否已经**有**一个响应式对象，如果是直接返回响应式对象
+   5. `canObserve` 函数对 `target` 对象限制：被冻结的对象 和 不在白名单内的对象（如 date）不能变成响应式
+   6. `createReactiveObject` 函数通过 `Proxy API` 劫持 `target` 对象，把它变成响应式
+   7. 给原始数据打标识，`target.__v_reactive = observed`
+   8. `mutableHandlers` (`packages\reactivity\src\baseHandlers.ts`)
+
+      ```ts
+      export const mutableHandlers: ProxyHandler<object> = {
+        get,
+        set,
+        deleteProperty,
+        has,
+        ownKeys
+      }
+      ```
+
+3. 依赖收集：`get` 函数：
+
+   1. 通过 `Reflect.get` 方法求值，然后执行 `track` 函数收集依赖
+   2. 函数最后会对计算的值 `res` 进行判断，如果也是数组或对象，则递归执行 `reactive` 把 `res` 变成响应式对象（因为 `proxy` 劫持的是对象本身，并不能劫持子对象变化）
+   3. `track` 函数的实现（track.js）
+
+4. 派发通知：`set` 函数：
+
+   1. 派发通知在数据更新阶段，用 `Proxy API` 劫持了数据对象，当这个响应式对象属性更新的时候就会执行 `set` 函数
+   2. `set` 函数是 `createSetter` 函数执行的返回值
+
+      1. 首先通过 `Reflect.set` 求值
+      2. 然后通过 `trigger` 函数派发通知，并依据 `key` 是否存在在 `target` 上来确定通知类型
+
+   3. 核心：执行 `trigger` 函数派发通知
+      1. `trigger` 函数就是根据 `target` 和 `key` 从 `targetMap` 中找到相关的所有**副作用函数**遍历执行一遍
+
+5. 副作用函数：`effect` 函数：
+
 ## ref
 
 > 接受一个参数值并返回一个响应式且可改变的 ref 对象。ref 对象拥有一个指向内部值的单一属性 .value。
