@@ -19,7 +19,9 @@ __DEV__=false yarn dev
 const execa = require('execa')
 const { fuzzyMatchTarget } = require('./utils')
 const args = require('minimist')(process.argv.slice(2))
+// 默认目标 vue
 const target = args._.length ? fuzzyMatchTarget(args._)[0] : 'vue'
+// 打包格式 cjs（Node），umd（浏览器），ESM（es6）
 const formats = args.formats || args.f
 const sourceMap = args.sourcemap || args.s
 const commit = execa.sync('git', ['rev-parse', 'HEAD']).stdout.slice(0, 7)
@@ -31,7 +33,7 @@ execa(
     '--environment',
     [
       `COMMIT:${commit}`,
-      `TARGET:${target}`,
+      `TARGET:${target}`, // 打包的目录
       `FORMATS:${formats || 'global'}`,
       sourceMap ? `SOURCE_MAP:true` : ``
     ]

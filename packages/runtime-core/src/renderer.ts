@@ -446,8 +446,8 @@ function baseCreateRenderer(
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
   const patch: PatchFn = (
-    n1,
-    n2,
+    n1, // 老的VNode
+    n2, // 新的VNode
     container,
     anchor = null,
     parentComponent = null,
@@ -1202,6 +1202,7 @@ function baseCreateRenderer(
           optimized
         )
       } else {
+        // init 走这里
         mountComponent(
           n2,
           container,
@@ -1355,6 +1356,7 @@ function baseCreateRenderer(
         if (__DEV__) {
           startMeasure(instance, `render`)
         }
+        // 计算出当前dom树对应的VNode
         const subTree = (instance.subTree = renderComponentRoot(instance))
         if (__DEV__) {
           endMeasure(instance, `render`)
@@ -1378,6 +1380,7 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `patch`)
           }
+          // patch 函数是转换VNode为dom实际操作函数
           patch(
             null,
             subTree,
@@ -2185,13 +2188,14 @@ function baseCreateRenderer(
     }
     return hostNextSibling((vnode.anchor || vnode.el)!)
   }
-
+  // vdom => dom
   const render: RootRenderFunction = (vnode, container) => {
     if (vnode == null) {
       if (container._vnode) {
         unmount(container._vnode, null, null, true)
       }
     } else {
+      // 初始化走这里
       patch(container._vnode || null, vnode, container)
     }
     flushPostFlushCbs()
@@ -2220,9 +2224,11 @@ function baseCreateRenderer(
     >)
   }
 
+  // 这就是渲染器
   return {
     render,
     hydrate,
+    // createAppAPI 里面才是App创建的地方
     createApp: createAppAPI(render, hydrate)
   }
 }

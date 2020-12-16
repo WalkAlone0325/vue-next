@@ -50,6 +50,7 @@ export const hydrate = ((...args) => {
   ensureHydrationRenderer().hydrate(...args)
 }) as RootHydrateFunction
 
+// 创建应用程序实例
 export const createApp = ((...args) => {
   const app = ensureRenderer().createApp(...args)
 

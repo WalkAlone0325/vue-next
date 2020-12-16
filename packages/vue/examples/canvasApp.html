@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <!-- 声明一个App模板 -->
+  <script type="text/x-template" id="chart">
+    <bar-chart :data="chartData"></bar-chart>
+  </script>
+
+  <script src="../dist/vue.global.js"></script>
+  <script>
+    const { createApp, createRenderer } = Vue
+
+    const renderer = createRenderer({
+      createElement(tag) {
+        return { tag }
+      },
+      insert(child, parent) {
+        // 没有任何真实元素需要追加
+        // 这里只需要建立父元素和子元素之间的关系即可
+        child.parent = parent
+        if (!parent.childs) {
+          parent.childs = [child]
+        } else {
+          parent.childs.push(child)
+        }
+
+        // parent是canvas时，启动首次绘制
+        if (parent.nodeType === 1) {
+          draw(child)
+        }
+      },
+      // 属性的保存
+      patchProp(el, key, preValue, nextValue) {
+        // 把数据保存备用
+        el[key] = nextValue
+      }
+    })
+
+    let ctx, canvas
+
+    const draw = (el, noClear) => {
+      if (!noClear) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      }
+
+      // 画画
+      if (el.tag === 'bar-chart') {
+        const { data } = el
+
+      }
+    }
+
+    // 1. 创建app实例同时想要创建一个canvas作为宿主元素
+    function createCanvasApp(App) {
+      const app = renderer.createApp(App)
+      // 覆盖 mount 方法
+      const mount = app.mount
+
+      app.mount = function (selector) {
+        canvas = document.createElement('canvas')
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+        document.querySelector(selector).appendChild(canvas)
+        ctx = canvas.getContext('2d')
+      }
+
+      return app
+    }
+
+    createCanvasApp({
+      template: '#chart',
+      data() {
+        return {
+          chartData: [
+            { title: '青铜', count: 200, color: 'brown' },
+            { title: '白银', count: 250, color: 'blue' },
+            { title: '黄金', count: 100, color: 'red' },
+          ]
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+
+</html>

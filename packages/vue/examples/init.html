@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app">
+    {{count}}
+    <!-- <comp></comp> -->
+  </div>
+  <!-- <script src="../dist/vue.global.js"></script> -->
+  <script>
+    // 4. createAppAPI
+    const createAppAPI = (render) => {
+      return function createApp(rootComponent) {
+        // 创建一个app，定义 mount 方法
+        // mount 将来会调用 render ，将 VNode 转换为 真实dom
+        const app = {
+          // rootContainer 是宿主元素
+          mount(rootContainer) {
+            // 手写了vnode，实际上应该是根组件render函数的返回值
+            const vnode = {
+              tag: 'h2',
+              props: null,
+              children: rootComponent.data().count + ''
+            }
+
+            render(vnode, document.querySelector(rootContainer))
+          }
+        }
+
+        return app
+      }
+    }
+
+    // 3. createRenderer
+    const createRenderer = ({createElement, insert}) => {
+      const render = (vnode, container) => {
+        // 解析vnode =》 dom
+        // 创建vnode对应的dom
+        const child = createElement(vnode.tag)
+        if(typeof vnode.children === 'string') {
+          // 元素的内部是文本
+          child.textContent = vnode.children
+        }
+        // 省略的是多个子元素的情况
+        // 追加节点
+        insert(child, container)
+      }
+
+      return {
+        render,
+        createApp: createAppAPI(render)
+      }
+    }
+
+
+    // 2. renderer，这里面的参数是dom操作
+    const renderer = createRenderer({
+      createElement(tag) {
+        return document.createElement(tag)
+      },
+      insert(child, parent) {
+        parent.appendChild(child)
+      }
+    })
+
+
+    const Vue = {
+      // 1. 此方法创建 vue app 实例
+      createApp(options) {
+        // 真正用来创建 app 的是 renderer
+        return renderer.createApp(options)
+      }
+    }
+
+    // 1. 创建app实例
+    Vue.createApp({
+      data(){
+        return {
+          count:0
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
