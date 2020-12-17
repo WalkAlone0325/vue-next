@@ -507,6 +507,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // init 初始化时候走这里
           processComponent(
             n1,
             n2,
@@ -1228,7 +1229,7 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
-    // 创建组件实例 createComponentInstance 函数
+    // 1. 创建组件实例 createComponentInstance 函数
     const instance: ComponentInternalInstance = (initialVNode.component = createComponentInstance(
       initialVNode,
       parentComponent,
@@ -1251,11 +1252,11 @@ function baseCreateRenderer(
     }
 
     // resolve props and slots for setup context
-    //解析设置上下文的道具和位置
+    // 解析设置上下文的道具和位置
     if (__DEV__) {
       startMeasure(instance, `init`)
     }
-    // 设置组件实例
+    // 2. 设置组件实例
     setupComponent(instance)
     if (__DEV__) {
       endMeasure(instance, `init`)
@@ -1275,7 +1276,7 @@ function baseCreateRenderer(
       return
     }
 
-    // 设置并运行带副作用的渲染函数
+    // 3. 设置并运行带副作用的渲染函数
     setupRenderEffect(
       instance,
       initialVNode,

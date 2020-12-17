@@ -14,13 +14,9 @@
   <script src="../dist/vue.global.js"></script>
   <script>
     const { createApp } = Vue
-    createApp({
-      data() {
-        return {
-          count: 0
-        }
-      }
-    }).mount('#app')
+    console.log(Vue)
+    const app = createApp({}).mount('#app')
+    console.log(app)
   </script>
 </body>
 
