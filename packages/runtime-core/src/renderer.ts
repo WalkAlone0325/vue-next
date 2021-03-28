@@ -446,8 +446,8 @@ function baseCreateRenderer(
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
   const patch: PatchFn = (
-    n1, // 老的VNode
-    n2, // 新的VNode
+    n1,
+    n2,
     container,
     anchor = null,
     parentComponent = null,
@@ -455,10 +455,14 @@ function baseCreateRenderer(
     isSVG = false,
     optimized = false
   ) => {
+    // 老的VNode // 新的VNode
+    // 如果新旧节点都存在，且新旧节点不同，则销毁旧节点
     // patching & not same type, unmount old tree
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
+      // unmount 取消挂载
       unmount(n1, parentComponent, parentSuspense, true)
+      // 旧节点置为 null
       n1 = null
     }
 
@@ -467,22 +471,29 @@ function baseCreateRenderer(
       n2.dynamicChildren = null
     }
 
+    // n2 代表新节点
     const { type, ref, shapeFlag } = n2
     switch (type) {
       case Text:
+        // 处理文本节点
         processText(n1, n2, container, anchor)
         break
       case Comment:
+        // 处理注释节点
         processCommentNode(n1, n2, container, anchor)
         break
       case Static:
+        // 处理静态节点
         if (n1 == null) {
+          // 旧节点为null，卸载
           mountStaticNode(n2, container, anchor, isSVG)
         } else if (__DEV__) {
+          // patch 对比静态节点
           patchStaticNode(n1, n2, container, isSVG)
         }
         break
       case Fragment:
+        // 处理Fragment元素
         processFragment(
           n1,
           n2,
@@ -496,6 +507,7 @@ function baseCreateRenderer(
         break
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
+          // 处理 普通 dom 元素
           processElement(
             n1,
             n2,
@@ -508,6 +520,10 @@ function baseCreateRenderer(
           )
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
           // init 初始化时候走这里
+          // 处理组件，createApp(App)
+          // TODO! 和渲染过程类似，更新过程也是一个 树的深度优先遍历过程，
+          // 更新完当前节点后，就会遍历更新它的子节点，因此在遍历的过程中会遇到
+          // 组件 vnode 节点，就会执行到 processComponent 处理逻辑中
           processComponent(
             n1,
             n2,
@@ -519,6 +535,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.TELEPORT) {
+          // 处理 Teleport
           ;(type as typeof TeleportImpl).process(
             n1 as TeleportVNode,
             n2 as TeleportVNode,
@@ -531,6 +548,7 @@ function baseCreateRenderer(
             internals
           )
         } else if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {
+          // 处理 Suspense
           ;(type as typeof SuspenseImpl).process(
             n1,
             n2,
@@ -653,6 +671,7 @@ function baseCreateRenderer(
     hostRemove(anchor!)
   }
 
+  // 处理普通元素
   const processElement = (
     n1: VNode | null,
     n2: VNode,
@@ -665,6 +684,7 @@ function baseCreateRenderer(
   ) => {
     isSVG = isSVG || (n2.type as string) === 'svg'
     if (n1 == null) {
+      // 旧节点为null，挂载元素
       mountElement(
         n2,
         container,
@@ -675,6 +695,7 @@ function baseCreateRenderer(
         optimized
       )
     } else {
+      // 更新元素
       patchElement(n1, n2, parentComponent, parentSuspense, isSVG, optimized)
     }
   }
@@ -855,6 +876,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 更新普通元素
   const patchElement = (
     n1: VNode,
     n2: VNode,
@@ -893,6 +915,7 @@ function baseCreateRenderer(
       // (i.e. at the exact same position in the source template)
       if (patchFlag & PatchFlags.FULL_PROPS) {
         // element props contain dynamic keys, full diff needed
+        // 更新props
         patchProps(
           el,
           n2,
@@ -985,6 +1008,8 @@ function baseCreateRenderer(
       }
     } else if (!optimized) {
       // full diff
+      // 更新子节点
+      // TODO 更新子节点
       patchChildren(
         n1,
         n2,
@@ -1020,16 +1045,13 @@ function baseCreateRenderer(
       const container =
         // - In the case of a Fragment, we need to provide the actual parent
         // of the Fragment itself so it can move its children.
-        oldVNode.type === Fragment ||
-        // - In the case of different nodes, there is going to be a replacement
+        oldVNode.type === Fragment || // - In the case of different nodes, there is going to be a replacement
         // which also requires the correct parent container
-        !isSameVNodeType(oldVNode, newVNode) ||
-        // - In the case of a component, it could contain anything.
+        !isSameVNodeType(oldVNode, newVNode) || // - In the case of a component, it could contain anything.
         oldVNode.shapeFlag & ShapeFlags.COMPONENT ||
         oldVNode.shapeFlag & ShapeFlags.TELEPORT
-          ? hostParentNode(oldVNode.el!)!
-          : // In other cases, the parent container is not actually used so we
-            // just pass the block element here to avoid a DOM parentNode call.
+          ? hostParentNode(oldVNode.el!)! // In other cases, the parent container is not actually used so we
+          : // just pass the block element here to avoid a DOM parentNode call.
             fallbackContainer
       patch(
         oldVNode,
@@ -1044,6 +1066,8 @@ function baseCreateRenderer(
     }
   }
 
+  // 更新props
+  // 更新 DOM 节点的 class、style、event 以及其它的一些 DOM 属性
   const patchProps = (
     el: RendererElement,
     vnode: VNode,
@@ -1053,6 +1077,7 @@ function baseCreateRenderer(
     parentSuspense: SuspenseBoundary | null,
     isSVG: boolean
   ) => {
+    // 新旧props不同
     if (oldProps !== newProps) {
       for (const key in newProps) {
         // empty string is not valid prop
@@ -1183,6 +1208,7 @@ function baseCreateRenderer(
     }
   }
 
+  // TODO! 处理组件
   const processComponent = (
     n1: VNode | null,
     n2: VNode,
@@ -1193,6 +1219,7 @@ function baseCreateRenderer(
     isSVG: boolean,
     optimized: boolean
   ) => {
+    // 没有旧节点
     if (n1 == null) {
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         ;(parentComponent!.ctx as KeepAliveContext).activate(
@@ -1215,6 +1242,7 @@ function baseCreateRenderer(
         )
       }
     } else {
+      // 更新子组件
       updateComponent(n1, n2, optimized)
     }
   }
@@ -1293,8 +1321,10 @@ function baseCreateRenderer(
     }
   }
 
+  // TODO 更新组件
   const updateComponent = (n1: VNode, n2: VNode, optimized: boolean) => {
     const instance = (n2.component = n1.component)!
+    // 根据新旧子节点判断是否需要更新子组件
     if (shouldUpdateComponent(n1, n2, optimized)) {
       if (
         __FEATURE_SUSPENSE__ &&
@@ -1313,15 +1343,26 @@ function baseCreateRenderer(
         return
       } else {
         // normal update
+        // 新的子组件vnode赋值给instance.next
         instance.next = n2
         // in case the child component is also queued, remove it to avoid
         // double updating the same child component in the same flush.
+        // 子组件也可能因为数据变化被添加到更新队形里
+        /**
+         * 如果 shouldUpdateComponent 返回 true ，
+         * 那么在它的最后，先执行 invalidateJob（instance.update）
+         * 避免子组件由于自身数据变化导致的重复更新，
+         * 然后又执行了子组件的副作用渲染函数 instance.update
+         * 来主动触发子组件的更新。
+         */
         invalidateJob(instance.update)
         // instance.update is the reactive effect runner.
+        // 执行子组件的副作用渲染函数
         instance.update()
       }
     } else {
       // no update needed. just copy over properties
+      // 不需要更新，只复制属性
       n2.component = n1.component
       n2.el = n1.el
       instance.vnode = n2
@@ -1460,10 +1501,8 @@ function baseCreateRenderer(
         }
         patch(
           prevTree,
-          nextTree,
-          // parent may have changed if it's in a teleport
-          hostParentNode(prevTree.el!)!,
-          // anchor may have changed if it's in a fragment
+          nextTree, // parent may have changed if it's in a teleport
+          hostParentNode(prevTree.el!)!, // anchor may have changed if it's in a fragment
           getNextHostNode(prevTree),
           instance,
           parentSuspense,
@@ -1472,6 +1511,7 @@ function baseCreateRenderer(
         if (__DEV__) {
           endMeasure(instance, `patch`)
         }
+        // 缓存更新后的dom节点
         next.el = nextTree.el
         if (originNext === null) {
           // self-triggered update. In case of HOC, update parent component
@@ -1506,11 +1546,17 @@ function baseCreateRenderer(
     nextVNode: VNode,
     optimized: boolean
   ) => {
+    // 新组件vnode的component属性指向组件实例
     nextVNode.component = instance
+    // 旧组件vnode的props属性
     const prevProps = instance.vnode.props
+    // 组件实例的vnode属性指向新的组件vnode
     instance.vnode = nextVNode
+    // 清空next属性，为了方便下一次更新渲染准备
     instance.next = null
+    // 更新props
     updateProps(instance, nextVNode.props, prevProps, optimized)
+    // 更新 slots
     updateSlots(instance, nextVNode.children)
 
     // props update may have triggered pre-flush watchers.
@@ -1518,7 +1564,8 @@ function baseCreateRenderer(
     flushPreFlushCbs(undefined, instance.update)
   }
 
-  //
+  // 更新子节点
+  // TODO! 更新子节点，纯文本、vnode数组、null空，9种情况
   const patchChildren: PatchChildrenFn = (
     n1,
     n2,
@@ -1567,19 +1614,25 @@ function baseCreateRenderer(
     }
 
     // children has 3 possibilities: text, array or no children.
+    // 子节点有3中可能情况：文本，数组，空
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       // text children fast path
       if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 数组-->文本，删除之前的子节点
         unmountChildren(c1 as VNode[], parentComponent, parentSuspense)
       }
       if (c2 !== c1) {
+        // 文本对比不同，则替换为新文本
         hostSetElementText(container, c2 as string)
       }
     } else {
       if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
         // prev children was array
+        // 之前的子节点是数组
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
           // two arrays, cannot assume anything, do full diff
+          // 新的子节点仍然是数组，则做完整diff
+          // TODO! 新旧均为vnode数组，核心diff，patchKeyedChildren
           patchKeyedChildren(
             c1 as VNode[],
             c2 as VNodeArrayChildren,
@@ -1592,16 +1645,21 @@ function baseCreateRenderer(
           )
         } else {
           // no new children, just unmount old
+          // 数组-->空，没有新子节点，则删除之前的子节点
           unmountChildren(c1 as VNode[], parentComponent, parentSuspense, true)
         }
       } else {
         // prev children was text OR null
         // new children is array OR null
+        // 之前的子节点是文本节点或者空
+        // 新的子节点是数组或者空
         if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+          // 如果之前是文本，则清空
           hostSetElementText(container, '')
         }
         // mount new if array
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          // 若果新的子节点是数组，则挂载新的子节点
           mountChildren(
             c2 as VNodeArrayChildren,
             container,
@@ -1673,6 +1731,7 @@ function baseCreateRenderer(
   }
 
   // can be all-keyed or mixed
+  // TODO? 核心diff算法
   const patchKeyedChildren = (
     c1: VNode[],
     c2: VNodeArrayChildren,
@@ -1685,9 +1744,12 @@ function baseCreateRenderer(
   ) => {
     let i = 0
     const l2 = c2.length
+    // 旧子节点尾部索引
     let e1 = c1.length - 1 // prev ending index
+    // 新子节点尾部索引
     let e2 = l2 - 1 // next ending index
 
+    // 1. 从头部开始同步
     // 1. sync from start
     // (a b) c
     // (a b) d e
@@ -1696,6 +1758,7 @@ function baseCreateRenderer(
       const n2 = (c2[i] = optimized
         ? cloneIfMounted(c2[i] as VNode)
         : normalizeVNode(c2[i]))
+      // 相同的节点，递归执行patch更新节点
       if (isSameVNodeType(n1, n2)) {
         patch(
           n1,
@@ -1713,6 +1776,7 @@ function baseCreateRenderer(
       i++
     }
 
+    // 2. 从尾部开始同步
     // 2. sync from end
     // a (b c)
     // d e (b c)
@@ -1739,6 +1803,7 @@ function baseCreateRenderer(
       e2--
     }
 
+    // 3. 挂载剩余的新节点
     // 3. common sequence + mount
     // (a b)
     // (a b) c
@@ -1767,6 +1832,7 @@ function baseCreateRenderer(
       }
     }
 
+    // 4. 普通序列删除多余的旧节点
     // 4. common sequence + unmount
     // (a b) c
     // (a b)
@@ -1781,6 +1847,7 @@ function baseCreateRenderer(
       }
     }
 
+    //TODO 做到这里了 5. 处理未知子序列
     // 5. unknown sequence
     // [i ... e1 + 1]: a b [c d e] f g
     // [i ... e2 + 1]: a b [e d c h] f g
@@ -2019,8 +2086,7 @@ function baseCreateRenderer(
       }
 
       if (
-        dynamicChildren &&
-        // #1153: fast path should not be taken for non-stable (v-for) fragments
+        dynamicChildren && // #1153: fast path should not be taken for non-stable (v-for) fragments
         (type !== Fragment ||
           (patchFlag > 0 && patchFlag & PatchFlags.STABLE_FRAGMENT))
       ) {
@@ -2228,8 +2294,7 @@ function baseCreateRenderer(
   // 这就是渲染器
   return {
     render,
-    hydrate,
-    // createAppAPI 里面才是App创建的地方
+    hydrate, // createAppAPI 里面才是App创建的地方
     createApp: createAppAPI(render, hydrate)
   }
 }

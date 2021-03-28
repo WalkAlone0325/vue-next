@@ -97,6 +97,7 @@ export type Plugin =
 
 // 创建实例上下文
 export function createAppContext(): AppContext {
+  // 配置
   return {
     app: null as any,
     config: {
@@ -133,7 +134,9 @@ export function createAppAPI<HostElement>(
       rootProps = null
     }
 
+    // 创建实例上下文
     const context = createAppContext()
+    // 安装的插件，使用 Set 储存
     const installedPlugins = new Set()
 
     let isMounted = false
@@ -145,31 +148,40 @@ export function createAppAPI<HostElement>(
       _props: rootProps,
       _container: null,
       _context: context,
-
       version,
-
+      // 获取 config
       get config() {
         return context.config
       },
-
+      // 设置 config
       set config(v) {
         if (__DEV__) {
+          // 无法全部替换config配置，但可以修改单个选项
           warn(
             `app.config cannot be replaced. Modify individual options instead.`
           )
         }
       },
-
+      /**
+       * use 方法，注册插件
+       * @param {Plugin} 插件名称
+       * @param {...any[]} 配置选项
+       * @return 返回app实例
+       */
       use(plugin: Plugin, ...options: any[]) {
+        // 插件已经被注册
         if (installedPlugins.has(plugin)) {
           __DEV__ && warn(`Plugin has already been applied to target app.`)
         } else if (plugin && isFunction(plugin.install)) {
+          // 存在 install 方法，直接调用
           installedPlugins.add(plugin)
           plugin.install(app, ...options)
         } else if (isFunction(plugin)) {
+          // 使用plugin方法注册插件
           installedPlugins.add(plugin)
           plugin(app, ...options)
         } else if (__DEV__) {
+          // 插件必须是一个带有install 方法的对象或者函数
           warn(
             `A plugin must either be a function or an object with an "install" ` +
               `function.`
@@ -177,7 +189,7 @@ export function createAppAPI<HostElement>(
         }
         return app
       },
-
+      // Vue2的mixin方法
       mixin(mixin: ComponentOptions) {
         if (__FEATURE_OPTIONS_API__) {
           if (!context.mixins.includes(mixin)) {
@@ -198,22 +210,35 @@ export function createAppAPI<HostElement>(
         }
         return app
       },
-
+      /**
+       * 注册组件方法
+       * @param {string} 组件名字
+       * @param {Component} 组件
+       * @return {*}  返回 app 实例
+       */
       component(name: string, component?: Component): any {
         if (__DEV__) {
           validateComponentName(name, context.config)
         }
+        // 如果第二个参数不存在，则就是name的名字
         if (!component) {
           return context.components[name]
         }
+        // 已经被注册
         if (__DEV__ && context.components[name]) {
           warn(`Component "${name}" has already been registered in target app.`)
         }
+        // 挂载到 context.components中
         context.components[name] = component
         return app
       },
-
-      directive(name: string, directive?: Directive) {
+      /**
+       * 注册指令
+       * @param {string} 指令名字
+       * @param {Directive} 指令
+       * @return {*} 返回 app 实例
+       */
+      directive(name: string, directive?: Directive): any {
         if (__DEV__) {
           validateDirectiveName(name)
         }
@@ -227,7 +252,12 @@ export function createAppAPI<HostElement>(
         context.directives[name] = directive
         return app
       },
-
+      /**
+       * 挂载方法 mount
+       * @param rootContainer
+       * @param isHydrate
+       * @returns
+       */
       mount(rootContainer: HostElement, isHydrate?: boolean): any {
         if (!isMounted) {
           // 创建根组件的 VNode
@@ -272,7 +302,9 @@ export function createAppAPI<HostElement>(
           )
         }
       },
-
+      /**
+       * 卸载 unmount
+       */
       unmount() {
         if (isMounted) {
           render(null, app._container)
@@ -283,7 +315,12 @@ export function createAppAPI<HostElement>(
           warn(`Cannot unmount an app that is not mounted.`)
         }
       },
-
+      /**
+       * provide 注入方法
+       * @param key
+       * @param value
+       * @returns
+       */
       provide(key, value) {
         if (__DEV__ && (key as string | symbol) in context.provides) {
           warn(

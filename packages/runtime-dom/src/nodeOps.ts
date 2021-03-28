@@ -42,6 +42,7 @@ export const nodeOps: Omit<RendererOptions<Node, Element>, 'patchProp'> = {
 
   querySelector: selector => doc.querySelector(selector),
 
+  // 设置 scopedId
   setScopeId(el, id) {
     el.setAttribute(id, '')
   },
