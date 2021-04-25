@@ -151,6 +151,7 @@ export function defineComponent<
   EE
 >
 
+// ts写法
 // overload 4: object format with object props declaration
 // see `ExtractPropTypes` in ./componentProps.ts
 export function defineComponent<

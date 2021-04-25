@@ -1,16 +1,19 @@
 import { UrlWithStringQuery, parse as uriParse } from 'url'
 import { isString } from '@vue/shared'
 
+// 相对 绝对 src@ 路径
 export function isRelativeUrl(url: string): boolean {
   const firstChar = url.charAt(0)
   return firstChar === '.' || firstChar === '~' || firstChar === '@'
 }
 
+// http 或 https
 const externalRE = /^https?:\/\//
 export function isExternalUrl(url: string): boolean {
   return externalRE.test(url)
 }
 
+// base64格式
 const dataUrlRE = /^\s*data:/i
 export function isDataUrl(url: string): boolean {
   return dataUrlRE.test(url)
@@ -18,6 +21,7 @@ export function isDataUrl(url: string): boolean {
 
 /**
  * Parses string url into URL object.
+ * 将字符串url解析为URL对象
  */
 export function parseUrl(url: string): UrlWithStringQuery {
   const firstChar = url.charAt(0)

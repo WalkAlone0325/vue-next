@@ -110,6 +110,7 @@ export function doCompileStyle(
     plugins.push(trimPlugin())
   }
   if (scoped) {
+    // 通过postcss插件加载了scopedId
     plugins.push(scopedPlugin(longId))
   }
   let cssModules: Record<string, string> | undefined

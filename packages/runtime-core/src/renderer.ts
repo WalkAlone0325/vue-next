@@ -2347,6 +2347,12 @@ export function traverseStaticChildren(n1: VNode, n2: VNode, shallow = false) {
   }
 }
 
+/**
+ * 获取最长递增子序列
+ * 贪心算法
+ * @param arr
+ * @returns
+ */
 // https://en.wikipedia.org/wiki/Longest_increasing_subsequence
 function getSequence(arr: number[]): number[] {
   const p = arr.slice()

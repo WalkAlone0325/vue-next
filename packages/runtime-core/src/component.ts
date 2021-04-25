@@ -194,6 +194,7 @@ export type InternalRenderFunction = {
  * We expose a subset of properties on the internal instance as they are
  * useful for advanced external libraries and tools.
  */
+// 组件实例接口
 export interface ComponentInternalInstance {
   uid: number
   type: ConcreteComponent

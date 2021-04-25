@@ -30,6 +30,7 @@ export default postcss.plugin('vue-scoped', (id: any) => (root: Root) => {
         // find the last child node to insert attribute selector
         selector.each(n => {
           // DEPRECATED ">>>" and "/deep/" combinator
+          // 弃用 >>> 和 /deep/
           if (
             n.type === 'combinator' &&
             (n.value === '>>>' || n.value === '/deep/')

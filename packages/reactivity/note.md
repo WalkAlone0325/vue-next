@@ -149,3 +149,22 @@ const plusOne = computed({
 plusOne.value = 1
 console.log(count.value) // 0
 ```
+
+1. shallow（浅观察）
+
+只响应一层对象，第二层开始不会响应式变化
+
+2. raw
+
+```js
+const state = reactive({
+  name: 'loner'
+})
+```
+
+- state 为 proxy 对象
+- {name: 'loner'} 为 raw 对象
+
+3. computed（`_dirty`）
+
+设置`_dirty`属性，只有在获取的时候才会更新

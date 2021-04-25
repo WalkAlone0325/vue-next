@@ -170,6 +170,11 @@ export function resetTracking() {
  * @param type 收集的类型,  函数的定义在下方
  * @param key 触发 track 的 object 的 key
  */
+{
+  state: {
+    count: []
+  }
+}
 export function track(target: object, type: TrackOpTypes, key: unknown) {
   // activeEffect为空代表没有依赖，直接return
   if (!shouldTrack || activeEffect === undefined) {

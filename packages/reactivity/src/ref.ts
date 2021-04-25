@@ -66,6 +66,7 @@ class RefImpl<T> {
 
   get value() {
     // track
+    // this 是 proxy对象，通过 toRaw 拿到 raw对象
     track(toRaw(this), TrackOpTypes.GET, 'value')
     return this._value
   }

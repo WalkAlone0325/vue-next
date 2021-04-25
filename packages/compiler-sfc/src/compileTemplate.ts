@@ -43,7 +43,7 @@ export interface SFCTemplateCompileResults {
 export interface SFCTemplateCompileOptions {
   source: string
   filename: string
-  id: string
+  id: string // 包含scopedId
   scoped?: boolean
   isProd?: boolean
   ssr?: boolean
